@@ -13,7 +13,22 @@ from .Service.order_client import get_order_details, update_order_shipping_statu
 from .Status.order_status import OrderStatus
 from .Status.shipping_status import ShippingStatus
 from .Service.inventory_client import update_inventory
+from django.http import JsonResponse
+from django.db import connections
+from django.db.utils import OperationalError
 
+def health_check(request):
+    """Basic liveness probe — app is up."""
+    return JsonResponse({"status": "ok"}, status=200)
+
+def readiness_check(request):
+    """Readiness probe — checks DB connectivity."""
+    db_conn = connections['default']
+    try:
+        db_conn.cursor()
+        return JsonResponse({"status": "ready"}, status=200)
+    except OperationalError:
+        return JsonResponse({"status": "not ready"}, status=503)
 
 class ShippingViewSet(viewsets.GenericViewSet):
     """
@@ -159,3 +174,17 @@ def health_check(request):
         return JsonResponse({"status": "healthy"}, status=200)
     except Exception as e:
         return JsonResponse({"status": "unhealthy", "error": str(e)}, status=500)
+
+from django.http import HttpResponse
+
+def metrics(request):
+    """
+    Basic Prometheus-compatible metrics endpoint.
+    """
+    content = (
+        "# HELP shipping_service_health_status 1 if healthy, else 0\n"
+        "# TYPE shipping_service_health_status gauge\n"
+        "shipping_service_health_status 1\n"
+    )
+    return HttpResponse(content, content_type="text/plain")
+

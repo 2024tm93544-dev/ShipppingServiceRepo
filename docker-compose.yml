@@ -1,0 +1,48 @@
+
+services:
+  shipping-db:
+    image: postgres:16-alpine
+    container_name: shipping_db
+    restart: always
+    environment:
+      POSTGRES_DB: shipping_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5434:5432"              # host:container
+    volumes:
+      - shipping_data:/var/lib/postgresql/data
+      - ./ShippingService/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./ShippingService/SeedData/eci_shipments.csv:/docker-entrypoint-initdb.d/eci_shipments.csv:ro
+
+    networks:
+      - shipping_net
+
+  shipping-service:
+    image: shipping-service:latest
+    build: .
+    container_name: shipping_service
+    depends_on:
+      - shipping-db
+    environment:
+      POSTGRES_DB: shipping_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_HOST: shipping-db
+      POSTGRES_PORT: 5432
+      DJANGO_SECRET_KEY: dev-secret-key
+      DJANGO_DEBUG: "True"
+      USE_MOCK_INVENTORY: "True"
+    ports:
+      - "8004:8004"
+    networks:
+      - shipping_net
+    restart: on-failure
+
+volumes:
+  shipping_data:
+
+networks:
+  shipping_net:
+    driver: bridge
+

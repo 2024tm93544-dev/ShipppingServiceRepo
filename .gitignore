@@ -43,4 +43,6 @@ htmlcov/
 
 # macOS / Windows temp files
 .DS_Store
+
 Thumbs.db
+.env

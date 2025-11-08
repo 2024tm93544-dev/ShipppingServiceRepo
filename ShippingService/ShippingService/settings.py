@@ -17,7 +17,6 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8001',
@@ -32,11 +31,15 @@ CORS_ALLOWED_ORIGINS = [
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)!nq@bf3(i$vh4is#xk8!^cciu6xe93)4sqmq7xq#1bgrf6+o8'
+# --- Security and Debug ---
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret-key')
+DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+ALLOWED_HOSTS = os.getenv(
+    'DJANGO_ALLOWED_HOSTS',
+    '*,127.0.0.1,localhost,shipping-service,shipping-service.default.svc.cluster.local'
+).split(',')
 
 
 
@@ -63,6 +66,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -137,10 +141,16 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Add this if not present — it helps Django find collected static assets
+STATICFILES_DIRS = [
+    BASE_DIR / "shippingapp" / "static",
+]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -158,3 +168,10 @@ USE_MOCK_USER = os.getenv("USE_MOCK_USER", "True").lower() == "true"
 USE_MOCK_INVENTORY = os.getenv("USE_MOCK_INVENTORY", "True").lower() == "true"
 USE_MOCK_PAYMENT = os.getenv("USE_MOCK_PAYMENT", "True").lower() == "true"
 USE_MOCK_SHIPPING = os.getenv("USE_MOCK_SHIPPING", "True").lower() == "true"
+
+# Swagger UI configuration
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,  # ✅ prevents /accounts/login redirect
+    'SECURITY_DEFINITIONS': None,  # (optional) disables auth boxes
+}
+

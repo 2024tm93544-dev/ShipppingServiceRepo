@@ -3,6 +3,9 @@ import sys
 import django
 import csv
 from datetime import datetime
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
 
 # --- Setup Django environment first ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ShippingService'))
@@ -16,7 +19,7 @@ from shippingapp.models import Shipment
 from shippingapp.Status.shipping_status import ShippingStatus
 
 # --- CSV file path ---
-CSV_FILE_PATH = r"D:/Shiiping Service/ShippingService/SeedData/eci_shipments.csv"
+CSV_FILE_PATH = os.path.join(BASE_DIR, "SeedData", "eci_shipments.csv")
 
 # --- Helper function ---
 def parse_datetime(value):

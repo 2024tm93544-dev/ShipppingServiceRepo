@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipping-service
+  labels:
+    app: shipping-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shipping-service
+  template:
+    metadata:
+      labels:
+        app: shipping-service
+    spec:
+      containers:
+        - name: shipping-service
+          image: shipping-service:latest   # You can later push to Docker Hub / Minikube cache
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8004
+          env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: "ShippingService.settings"
+            - name: POSTGRES_DB
+              value: "shipping_db"
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+            - name: POSTGRES_HOST
+              value: "shipping-db"
+            - name: POSTGRES_PORT
+              value: "5432"
+          readinessProbe:
+            httpGet:
+              path: /ready/
+              port: 8004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 8004
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+

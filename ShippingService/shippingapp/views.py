@@ -155,9 +155,9 @@ class ShippingViewSet(viewsets.GenericViewSet):
 )
 @api_view(['GET'])
 def get_shipment_detail(request, pk=None):
-    """Retrieve details of a specific shipment by ID."""
+    """Retrieve details of a specific shipment by Order ID."""
     try:
-        shipment = Shipment.objects.get(pk=pk)
+        shipment = Shipment.objects.get(order_id=pk)
         return Response(ShipmentSerializer(shipment).data, status=status.HTTP_200_OK)
     except Shipment.DoesNotExist:
         return Response({"error": "Shipment not found"}, status=status.HTTP_404_NOT_FOUND)
